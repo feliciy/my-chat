@@ -4,7 +4,13 @@ import json
 import os
 import shutil
 import glob
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
+
+# 北京时间时区
+beijing_tz = timezone(timedelta(hours=8))
+
+def beijing_now():
+    return datetime.now(beijing_tz)
 
 # ==================== 页面配置 ====================
 st.set_page_config(page_title="我的小手机", page_icon="📱", layout="wide")
@@ -144,7 +150,7 @@ with st.sidebar:
         with col1:
             if st.button("📁 备份当前", use_container_width=True):
                 if os.path.exists(HISTORY_FILE):
-                    name = backup_name_input.strip()[:30] if backup_name_input.strip() else datetime.now().strftime('%Y%m%d_%H%M%S')
+                    name = backup_name_input.strip()[:30] if backup_name_input.strip() else beijing_now().strftime('%Y%m%d_%H%M%S')
                     backup_name = f"chat_history_{name}.json"
                     counter = 1
                     while os.path.exists(backup_name):
@@ -159,7 +165,7 @@ with st.sidebar:
         with col2:
             if st.button("✨ 新建对话", use_container_width=True):
                 if os.path.exists(HISTORY_FILE) and len(st.session_state.messages) > 0:
-                    name = backup_name_input.strip()[:30] if backup_name_input.strip() else datetime.now().strftime('%Y%m%d_%H%M%S')
+                    name = backup_name_input.strip()[:30] if backup_name_input.strip() else beijing_now().strftime('%Y%m%d_%H%M%S')
                     backup_name = f"chat_history_{name}.json"
                     counter = 1
                     while os.path.exists(backup_name):
@@ -206,7 +212,7 @@ with st.sidebar:
             st.download_button(
                 label="下载",
                 data=content,
-                file_name=f"chat_history_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{fmt.lower()}",
+                file_name=f"chat_history_{beijing_now().strftime('%Y%m%d_%H%M%S')}.{fmt.lower()}",
                 mime="text/plain"
             )
     
@@ -244,7 +250,7 @@ for idx, msg in enumerate(st.session_state.messages):
         continue
     
     role_class = "user" if msg["role"] == "user" else "assistant"
-    time_str = msg["timestamp"] if "timestamp" in msg else datetime.now().strftime("%H:%M")
+    time_str = msg["timestamp"] if "timestamp" in msg else beijing_now().strftime("%H:%M")
     
     if msg["role"] == "user":
         col1, col2 = st.columns([1, 10])
@@ -282,7 +288,7 @@ for idx, msg in enumerate(st.session_state.messages):
 
 # ==================== 聊天输入 ====================
 if prompt := st.chat_input("说点什么..."):
-    current_time = datetime.now().strftime("%H:%M")
+    current_time = beijing_now().strftime("%H:%M")
     
     st.markdown(f"""
     <div class="message-row user">
@@ -330,7 +336,7 @@ if prompt := st.chat_input("说点什么..."):
         st.markdown(f"""
         <div class="message-row assistant">
             <div class="bubble">{reply}</div>
-            <div class="timestamp">{datetime.now().strftime("%H:%M")}</div>
+            <div class="timestamp">{beijing_now().strftime("%H:%M")}</div>
         </div>
         """, unsafe_allow_html=True)
         
@@ -338,7 +344,7 @@ if prompt := st.chat_input("说点什么..."):
             "role": "assistant", 
             "content": reply,
             "reasoning": reasoning if reasoning else "",
-            "timestamp": datetime.now().strftime("%H:%M")
+            "timestamp": beijing_now().strftime("%H:%M")
         })
         
         if settings["auto_save"]:
